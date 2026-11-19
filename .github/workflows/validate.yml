@@ -13,7 +13,7 @@ jobs:
   infrastructure:
     if: github.event_name == 'push'
     name: Trusted infrastructure
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v7
@@ -29,7 +29,7 @@ jobs:
   generated:
     if: github.event_name == 'pull_request'
     name: Generated SEED-1 verification
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
