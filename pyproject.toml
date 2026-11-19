@@ -1,0 +1,9 @@
+[tool.pytest.ini_options]
+testpaths = ["tests/test_contract_and_tools.py"]
+bdd_features_base_dir = "features/auth"
+markers = [
+    "SEED-1: login requirement",
+    "AC-1: registration",
+    "AC-2: valid login",
+    "AC-3: invalid password and access denial",
+]

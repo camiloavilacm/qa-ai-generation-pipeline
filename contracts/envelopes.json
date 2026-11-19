@@ -1,0 +1,7 @@
+{
+  "register_request": {"user": {"username": "<username>", "email": "<email>", "password": "<password>"}},
+  "login_request": {"user": {"email": "<email>", "password": "<password>"}},
+  "authenticated_response": {"user": {"username": "<username>", "email": "<email>", "token": "<synthetic jwt>"}},
+  "unauthenticated_response": {"errors": {"authentication": ["is required"]}},
+  "response_notes": "Register, successful login and current-user responses use the same authenticated envelope. Passwords are never returned."
+}

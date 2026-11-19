@@ -1,0 +1,71 @@
+name: SEED-1 validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  infrastructure:
+    if: github.event_name == 'push'
+    name: Trusted infrastructure
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      - run: python -m pytest -q --tb=no tests/test_contract_and_tools.py
+
+  generated:
+    if: github.event_name == 'pull_request'
+    name: Generated SEED-1 verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${ github.event.pull_request.head.sha }
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Check committed change scope
+        env:
+          BASE_SHA: ${ github.event.pull_request.base.sha }
+        run: python -m tools.validate_scope --base "$BASE_SHA"
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      - name: Verify approved scenarios
+        env:
+          BASE_SHA: ${ github.event.pull_request.base.sha }
+        run: python tools/pipeline.py ci SEED-1 --base "$BASE_SHA"
+      - name: Publish run summary
+        if: always()
+        run: |
+          if compgen -G 'reports/run-*/SUMMARY.md' > /dev/null; then
+            cat reports/run-*/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: seed-1-evidence
+          if-no-files-found: ignore
+          path: |
+            reports/run-*/SUMMARY.md
+            reports/run-*/verification.json
+            reports/run-*/baselines.json
+            reports/run-*/mutations.json
+            reports/run-*/traceability.json
+            reports/run-*/**/junit.xml
+            reports/run-*/**/*-playwright-trace.json
